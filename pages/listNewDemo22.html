@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>歌单页面</title>
+    <link href="../images/title.png" rel="icon" >
+    <!-- 引入样式 -->
+   <!-- <link rel="stylesheet" href="../styles/page.css"/>-->
+    <style>
+        body {
+            background: url("../images/veer5.jpg") no-repeat;
+            /* background-size: auto;*/
+            background-size: 100%;
+            background-size: cover;
+            background-repeat: no-repeat;
+           /* background-attachment: local;  !*关键*!*/
+            background-attachment: fixed;  /*关键*/
+            background-position: center;
+           /* width: 100%;*/
+            height: 100%;
+        }
+        /* 添加 */
+        .addBrand-container .avatar-uploader .el-upload {
+            border: 1px dashed #d9d9d9;
+            border-radius: 6px;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        .addBrand-container .avatar-uploader .el-upload:hover {
+            border-color: #409eff;
+        }
+        .addBrand-container .avatar-uploader-icon {
+            font-size: 28px;
+            color: #8c939d;
+            width: 200px;
+            height: 160px;
+            line-height: 160px;
+            text-align: center;
+        }
+        .addBrand-container .avatar {
+            width: 160px;
+            height: 160px;
+            display: block;
+        }
+
+        .el-header {
+            background-color: #ffffff;
+            color: #333;
+            line-height: 60px;
+            width: 400px;
+            margin-left: 682px;
+            opacity: 0.8;
+            background-color: transparent;
+        }
+
+        .el-aside {
+            color: #333;
+        }
+
+        .demo-form-inline {
+            margin-left: 417px;
+        }
+
+        /* ------------------*/
+        .song-audio {
+            display: inline;
+            height: 37px;
+            width: 100%;
+        }
+
+        .audio-hang {
+            /* border: 1px solid red;*/
+            height: 37px;
+            width: 47%;
+            margin-left: 257px;
+            margin-top: -33px;
+        }
+
+        .tag1 {
+            /*border: 1px solid green;*/
+            width: 200px;
+        }
+
+        .tag2 {
+
+        }
+
+        .sel1 {
+            /* border: 1px solid red;*/
+            width: 30%;
+            float: right;
+            margin-top: -40px;
+        }
+
+        .sel2 {
+            width: 20%;
+            height: 37px;
+        }
+       /* ---------------*/
+        .el-table, .el-table__expanded-cell {background-color: transparent!important;}.el-table th, .el-table tr {border: 0!important;background-color: transparent!important;}
+        .el-table--border tr,td{border: none!important;}.el-table::before{height:0;}
+        .el-table thead{color: #ffa500 !important;}
+        .el-table {color: rgb(24, 3, 20) !important;}
+        .el-pagination{
+            opacity: 0.5;
+        }
+
+    </style>
+
+</head>
+<body>
+<div id="app">
+    <el-container style="height: auto; border: 1px">
+        <!-- 侧边栏 -->
+        <el-aside width="180px" style="background-color: rgb(255, 253, 253)">
+            <!-- 图片的插入 -->
+            <div class="demo-fit">
+                <span class="demonstration"><h4>歌单封面</h4></span>
+                <el-avatar shape="square" :size="160" :src="url"></el-avatar>
+            </div>
+            <template>
+                <el-table
+                        :data="tableData1"
+                        style="width: 100%">
+                    <el-table-column
+                            prop="listName"
+                            label="歌单列表"
+                            width="160">
+                        <template slot-scope="scope">
+                            <el-row>
+                                <el-button type="danger" @click="getListId(scope.row)" style="width: 100%">
+                                    {{scope.row.listName}}
+                                </el-button>
+                            </el-row>
+                        </template>
+                    </el-table-column>
+                </el-table>
+            </template>
+        </el-aside>
+        <!-- 顶部 -->
+
+        <el-container>
+
+            <el-main>
+                <!--搜索表单-->
+                <el-tag type="warning" class="el-icon-tickets" @click="updateList"> 歌单名称:　{{ listOnlyName }}</el-tag>
+                <el-tag type="danger" class="el-icon-edit" size="small" @click="updateList">编辑</el-tag>
+                <el-form :inline="true" :model="searchFrom" class="demo-form-inline">
+                    <el-form-item label="歌手">
+                        <el-input v-model="searchFrom.singer" placeholder="歌手"></el-input>
+                    </el-form-item>
+                    <el-form-item label="歌曲名称">
+                        <el-input v-model="searchFrom.songName" placeholder="歌曲名称"></el-input>
+                    </el-form-item>
+
+                    <el-form-item>
+                        <el-button type="primary" icon="el-icon-search" @click="onSubmit">搜索</el-button>
+                    </el-form-item>
+                    <el-form-item>
+                        <el-button type="success" @click="removeAll" round>重置</el-button>
+                    </el-form-item>
+                </el-form>
+                <!--歌单编辑表单-->
+                <el-dialog title="编辑歌单"
+                           :visible.sync="listSave"
+                           width="30%">
+                    <el-form
+                            ref="ruleForm"
+                            :model="ruleForm"
+                            :rules="rules"
+                            :inline="true"
+                            label-width="80px"
+                            class="demo-ruleForm"
+                    >
+                        <el-form-item label="歌单名称">
+                            <el-input v-model="ruleForm.listName"></el-input>
+                        </el-form-item>
+                        <el-form-item label="歌单图片">
+                            <div class="addBrand-container" id="food-add-app">
+                                <el-upload class="avatar-uploader"
+                                           action="/common/uploadImg"
+                                           :show-file-list="false"
+                                           :on-success="handleAvatarSuccess"
+                                           :before-upload="beforeUpload"
+                                           ref="upload">
+                                    <img v-if="imageUrl" :src="imageUrl" class="avatar"></img>
+                                    <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+                                </el-upload>
+                            </div>
+                        </el-form-item>
+                        <el-form-item>
+                            <el-button type="success" @click="removeList" round>删除此歌单</el-button>
+                            <el-button type="primary" @click="updateYes">提交</el-button>
+                            <el-button @click="listSave=false">取消</el-button>
+                        </el-form-item>
+                    </el-form>
+                </el-dialog>
+                <!-- 歌曲列表显示-->
+                <!-- song数据表格-->
+                <template>
+                    <el-table
+                            :data="tableData"
+                            style="width: 100%"
+                            :row-class-name="tableRowClassName"
+                            @selection-change="handleSelectionChange"
+                    >
+                        <el-table-column
+                                label="序号"
+                                type="index"
+                                width="50">
+                        </el-table-column>
+
+                        <el-table-column
+                                prop="songName"
+                                label="歌曲"
+                                align="center">
+                        </el-table-column>
+                        <el-table-column
+                                prop="singer"
+                                label="歌手"
+                                align="center">
+                        </el-table-column>
+                        <el-table-column
+                                prop="album"
+                                align="center"
+                                label="专辑">
+                        </el-table-column>
+                        <el-table-column
+                                prop="time"
+                                align="center"
+                                label="时长">
+                        </el-table-column>
+                        <el-table-column
+                                prop="date"
+                                align="center"
+                                label="发行时间">
+                        </el-table-column>
+
+                        <el-table-column
+                                align="center"
+                                label="播放　　移除">
+
+                            <template slot-scope="scope">
+                                <el-row>
+                                    <el-button type="danger" icon="el-icon-video-play" @click="createList(scope.row)"
+                                               circle></el-button>
+                                    <el-button type="warning" icon="el-icon-folder-delete"
+                                               @click="removeById(scope.row)"
+                                               circle></el-button>
+                                </el-row>
+                            </template>
+                        </el-table-column>
+
+                    </el-table>
+                </template>
+                <!-- 分页条-->
+                <el-pagination
+                        @size-change="handleSizeChange"
+                        @current-change="handleCurrentChange"
+                        :current-page="currentPage"
+                        :page-sizes="[7, 10, 17, 20]"
+                        :page-size="7"
+                        layout="total, sizes, prev, pager, next, jumper"
+                        :total="totalCount">
+                </el-pagination>
+                <!-- 播放行-->
+                <div class="tag1">
+                    <el-tag type="warning" class="el-icon-s-data" v-model="arrList"> {{ songShow }}</el-tag>
+                </div>
+                <template>
+                    <div class="audio-hang">
+
+                        <audio controls="controls" autoplay @ended="ended" class="song-audio">
+                            <source :src="src" type="audio/wav">
+                        </audio>
+
+                    </div>
+                </template>
+                <div class="sel1">
+                    <el-tag type="warning" class="el-icon-caret-left" v-model="arrList" @click="onIt">上一首</el-tag>
+                    <el-tag type="warning" class="el-icon-caret-right" v-model="arrList" @click="nextOne">下一首</el-tag>
+                    <el-select v-model="choice" placeholder="播放" class="sel2">
+                        <el-option label="顺序" value="0"></el-option>
+                        <el-option label="随机" value="1"></el-option>
+                        <el-option label="单曲" value="2"></el-option>
+                    </el-select>
+                </div>
+
+            </el-main>
+        </el-container>
+    </el-container>
+
+</div>
+
+
+<!--
+
+<script src="js/vue.js"></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script src="element-ui/lib/index.js"></script>
+<link rel="stylesheet" href="element-ui/lib/theme-chalk/index.css">
+-->
+<script src="../js/vue.js"></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script src="../element-ui/lib/index.js"></script>
+<link rel="stylesheet" href="../element-ui/lib/theme-chalk/index.css">
+
+
+<script>
+    var app = new Vue({
+        el: "#app",
+        data() {
+            return {
+                //单曲播放锁定的list和索引
+                singleList: '',
+                singleIndex: '',
+                //当前的歌单的ID
+                listOnlyId: '',
+                //歌单名称
+                listOnlyName: '喜欢你',
+                //侧边栏的显示其他歌单内容
+                tableData1: [{id: 1, listName: "1", listUrl: ""}, {id: 1, listName: "1"}, {
+                    id: 1,
+                    listName: "1"
+                }, {id: 1, listName: "1"}, {id: 1, listName: "1"}, {id: 1, listName: "1"}, {
+                    id: 1,
+                    listName: "1"
+                }, {id: 1, listName: "1"}, {id: 1, listName: "1"}, {id: 1, listName: "1"}, {id: 1, listName: "1"},],
+                //歌曲列表
+                //图片地址
+                url: '../images/hi.png',
+                formInline: {
+                    user: '',
+                    region: ''
+                },
+                /////////------
+                ruleForm: {
+                    listName:'',
+                    id:'',
+                },
+                imageUrl: '',
+                //显示的歌名
+                songShow: 'SummerMusic 你好,夏天',
+                songIndex: -1,
+                arrList: [],
+                choice: '0',
+                src: '',
+                //src: '../images/TakeMeHand.mp3',
+                //每页几条
+                pageSize: 7,
+                //总记录数
+                totalCount: 87,
+                // 当前页码
+                currentPage: 1,
+                // 添加数据对话框是否展示的标记
+                listSave: false,
+                listShow: false,
+                dialogVisible: false,
+                centerVisible: false,
+                song: {
+                    id: "",
+                    songName: "",
+                    singer: "",
+                    album: "",
+                    time: "",
+                    date: "",
+                    url: ''
+                },
+                //添加歌单表单
+                list: {},
+                //被选中的id数组
+                danList: [{
+                    id: '1',
+                    listName: '2'
+                }, {
+                    id: '2',
+                    listName: '3',
+                }
+                ],
+                selectedIds: [],
+                // 表格数据
+                tableData: [
+                    {
+                        songName: "111",
+                        singer: "222",
+                        album: "333",
+                        time: "444",
+                        date: "555"
+                    },
+                    {
+                        songName: "111",
+                        singer: "222",
+                        album: "333",
+                        time: "444",
+                        date: "555"
+                    },
+                    {
+                        songName: "111",
+                        singer: "222",
+                        album: "333",
+                        time: "444",
+                        date: "555"
+                    },
+                    {
+                        songName: "111",
+                        singer: "222",
+                        album: "333",
+                        time: "444",
+                        date: "555"
+                    },
+                    {
+                        songName: "111",
+                        singer: "222",
+                        album: "333",
+                        time: "444",
+                        date: "555"
+                    },
+                    {
+                        songName: "111",
+                        singer: "222",
+                        album: "333",
+                        time: "444",
+                        date: "555"
+                    },
+                ],
+                //搜索表格
+                searchFrom: {
+                    singer: "",
+                    songName: ""
+                }
+
+            }
+        },
+        mounted() {
+            //this.getList();
+            axios.get("/lists/twoList").then((res) => {
+                this.tableData1 = res.data.songLists;
+                this.tableData = res.data.andLists;
+                this.listOnlyName = res.data.listOnlyName;
+                this.url = res.data.listUrl;
+                this.arrList = res.data.andLists;
+                this.listOnlyId = res.data.listId;
+                param = "?q"
+                param += "&songName=" + this.searchFrom.songName;
+                param += "&singer=" + this.searchFrom.singer;
+                param += "&listId=" + res.data.listId;
+                axios.get("/lists/" + this.currentPage + "/" + this.pageSize + param).then((res) => {
+                    this.tableData = res.data.data.records;
+                    this.totalCount = res.data.data.total;
+                })
+            })
+            // this.getAllBy();
+            //this.getAll();
+        },
+        methods: {
+            //初始化
+            openAll() {
+                axios.get("/lists/twoList").then((res) => {
+                    this.tableData1 = res.data.songLists;
+                    this.tableData = res.data.andLists;
+                    this.listOnlyName = res.data.listOnlyName;
+                    this.url = res.data.listUrl;
+                    this.arrList = res.data.andLists;
+                    this.listOnlyId = res.data.listId;
+                    param = "?q"
+                    param += "&songName=" + this.searchFrom.songName;
+                    param += "&singer=" + this.searchFrom.singer;
+                    param += "&listId=" + res.data.listId;
+                    axios.get("/lists/" + this.currentPage + "/" + this.pageSize + param).then((res) => {
+                        this.tableData = res.data.data.records;
+                        this.totalCount = res.data.data.total;
+                    })
+                })
+            },
+            //回显图片
+            handleAvatarSuccess(response, file, fileList) {
+                this.imageUrl = `/common/download?name=${response.data}`
+            },
+            beforeUpload(file) {
+                if (file) {
+                    const suffix = file.name.split('.')[1]
+                    const size = file.size / 1024 / 1024 < 8
+                    if (['png', 'jpeg', 'jpg'].indexOf(suffix) < 0) {
+                        this.$message.error('上传图片只支持 png、jpeg、jpg 格式！')
+                        this.$refs.upload.clearFiles()
+                        return false
+                    }
+                    if (!size) {
+                        this.$message.error('上传文件大小不能超过 2MB!')
+                        return false
+                    }
+                    return file
+                }
+            },
+            //编辑歌单
+            updateList() {
+                this.listSave = true;
+                this.imageUrl = this.url;
+                this.ruleForm.listName=this.listOnlyName;
+            },
+            //
+            removeList() {
+                this.$confirm('此操作将移除该数据, 是否继续?', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    //点了确定
+                    axios.delete("/lists/" + this.listOnlyId).then((res) => {
+                        if (res.data.code === 20021) {
+                            this.listSave=false;
+                            this.openAll();
+                            this.$message.success("歌单删除成功");
+                        }
+                    })
+                }).catch(() => {
+                    //点了取消
+                    this.$message({
+                        type: 'info',
+                        message: '已取消移除'
+                    });
+                });
+
+            },
+            updateYes() {
+                this.ruleForm.id=this.listOnlyId;
+                axios.put("/lists",this.ruleForm).then((res) => {
+                    if (res.data.code === 20031) {
+                        this.listSave=false;
+                        this.openAll();
+                        this.$message.success("歌单修改成功");
+                    }
+                })
+            },
+            //从歌单中移除歌曲
+            removeById(row) {
+                console.log(row);
+                this.andList = row;
+                console.log(this.andList);
+                this.$confirm('此操作将移除该数据, 是否继续?', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    //点了确定
+                    axios.delete("/andLists", {data: this.andList}).then((res) => {
+                        if (res.data.code === 20021) {
+                            this.$message.success("移除歌曲成功");
+                            this.getAll();
+                            this.getAllBy();
+                        } else {
+                            this.$message.error("移除歌曲失败");
+                        }
+                    })
+                }).catch(() => {
+                    //点了取消
+                    this.$message({
+                        type: 'info',
+                        message: '已取消移除'
+                    });
+                });
+            },
+            //=========
+            //上一首
+            onIt() {
+                if (this.choice === '0' || this.choice === '1') {
+                    this.songIndex = this.songIndex - 2;
+                    if (this.songIndex - 2 < -2) {
+                        this.songIndex = -1;
+                    }
+                }
+                this.ended();
+            },
+            //下一首
+            nextOne() {
+                this.ended();
+            },
+            //播放
+            createList(row) {
+
+                param = "?q"
+                param += "&songName=" + this.searchFrom.songName;
+                param += "&singer=" + this.searchFrom.singer;
+                param += "&listId=" + this.listOnlyId;
+                axios.get("/lists/getBySong" + param).then((res) => {
+                    this.arrList = res.data.data;
+                    var audio = document.querySelector('audio')
+                    let arridlist = this.arrList;
+                    let index = (arridlist).findIndex((arridlist) => arridlist.url == row.url);
+                    //  index 返回的就是当前查找元素在数组中的索引
+                    console.log(index);
+                    this.songIndex = index;
+                    //判断歌曲是否已在管理端删除
+                    //row.url='...';
+                    if(row.url==='...noUrl'){
+                        this.$confirm('该歌曲已被下架,是否从此歌单移除', '提示', {
+                            confirmButtonText: '确定',
+                            cancelButtonText: '取消',
+                            type: 'warning'
+                        }).then(() => {
+                            //点了确定
+                            axios.delete("/andLists", {data: row}).then((res) => {
+                                if (res.data.code === 20021) {
+                                    this.$message.success("移除歌曲成功");
+                                    this.getAll();
+                                    this.getAllBy();
+                                } else {
+                                    this.$message.error("移除歌曲失败");
+                                }
+                            })
+                        }).catch(() => {
+                            //点了取消
+                            this.$message({
+                                type: 'info',
+                                message: '已取消移除'
+                            });
+                        });
+                    }else{
+                        audio.src = row.url;
+                        audio.play();
+                        this.songShow = '正在播放: ' + row.songName + " - " + row.singer;
+                        //显示正在播放
+                        this.$message.success(this.songShow);
+                    }
+                })
+            },
+            ended() {
+                var audio = document.querySelector('audio');
+                if (this.choice === '1') {
+                   /* param = "?q"
+                    param += "&songName=" + this.searchFrom.songName;
+                    param += "&singer=" + this.searchFrom.singer;
+                    param += "&listId=" + this.listOnlyId;
+                    axios.get("/lists/getBySong" + param).then((res) => {
+                        this.arrList = res.data.data;*/
+                    //获取随机索引
+                    var i = Math.floor(Math.random() * (this.arrList.length));
+                    //判断歌曲是否已在管理端删除
+                    if(this.arrList[i].url==='...noUrl'){
+                        this.$confirm('该歌曲已被下架,是否从此歌单移除', '提示', {
+                            confirmButtonText: '确定',
+                            cancelButtonText: '取消',
+                            type: 'warning'
+                        }).then(() => {
+                            //点了确定
+                            axios.delete("/andLists", {data: this.arrList[i]}).then((res) => {
+                                if (res.data.code === 20021) {
+                                    this.$message.success("移除歌曲成功");
+                                    this.getAll();
+                                    this.getAllBy();
+                                } else {
+                                    this.$message.error("移除歌曲失败");
+                                }
+                            })
+                        }).catch(() => {
+                            //点了取消
+                            this.$message({
+                                type: 'info',
+                                message: '已取消移除'
+                            });
+                        });
+                    }else{
+                        audio.src = this.arrList[i].url;
+                        this.songIndex = i;
+                        audio.play();
+                        this.songShow = '正在播放: ' + this.arrList[i].songName + " - " + this.arrList[i].singer;
+                        //显示正在播放
+                        this.$message.success(this.songShow);
+                        //this.$message.success(this.arrList[i].url);
+
+                    }
+                       /*  })*/
+                } else if (this.choice === '0') {
+                    /* param = "?q"
+                     param += "&songName=" + this.searchFrom.songName;
+                     param += "&singer=" + this.searchFrom.singer;
+                     param += "&listId=" + this.listOnlyId;
+                     axios.get("/lists/getBySong" + param).then((res) => {
+                         this.arrList = res.data.data;*/
+                    //顺序播放
+                    this.songIndex = this.songIndex + 1;
+                    console.log("当前数据的长度:" + this.arrList.length);
+                    console.log("当前song索引:" + this.songIndex);
+                    if (this.songIndex > ((this.arrList.length) - 1)) {
+                        this.songIndex = 0;
+                    }
+                    console.log("最后一首后:" + this.songIndex);
+                    //判断歌曲是否已在管理端删除
+                    if(this.arrList[this.songIndex].url==='...noUrl'){
+                        this.$confirm('该歌曲已被下架,是否从此歌单移除', '提示', {
+                            confirmButtonText: '确定',
+                            cancelButtonText: '取消',
+                            type: 'warning'
+                        }).then(() => {
+                            //点了确定
+                            axios.delete("/andLists", {data: this.arrList[this.songIndex]}).then((res) => {
+                                if (res.data.code === 20021) {
+                                    this.$message.success("移除歌曲成功");
+                                    this.getAll();
+                                    this.getAllBy();
+                                } else {
+                                    this.$message.error("移除歌曲失败");
+                                }
+                            })
+                        }).catch(() => {
+                            //点了取消
+                            this.$message({
+                                type: 'info',
+                                message: '已取消移除'
+                            });
+                        });
+                    }else{
+                        audio.src = this.arrList[this.songIndex].url;
+                        audio.play();
+                        this.songShow = '正在播放: ' + this.arrList[this.songIndex].songName + " - " + this.arrList[this.songIndex].singer;
+                        //显示正在播放
+                        this.$message.success(this.songShow);
+                        // this.$message.success(this.arrList[this.songIndex].url);
+                        /* })*/
+                    }
+                    /* })*/
+                } else {
+                    //单曲播放
+
+                    console.log(this.songIndex);
+                    //判断歌曲是否已在管理端删除
+                    if(this.arrList[this.songIndex].url==='...noUrl'){
+                        this.$confirm('该歌曲已被下架,是否从此歌单移除', '提示', {
+                            confirmButtonText: '确定',
+                            cancelButtonText: '取消',
+                            type: 'warning'
+                        }).then(() => {
+                            //点了确定
+                            axios.delete("/andLists", {data: this.arrList[this.songIndex]}).then((res) => {
+                                if (res.data.code === 20021) {
+                                    this.$message.success("移除歌曲成功");
+                                    this.getAll();
+                                    this.getAllBy();
+                                } else {
+                                    this.$message.error("移除歌曲失败");
+                                }
+                            })
+                        }).catch(() => {
+                            //点了取消
+                            this.$message({
+                                type: 'info',
+                                message: '已取消移除'
+                            });
+                        });
+                    }else{
+                        audio.src = this.arrList[this.songIndex].url;
+                        audio.play();
+                        this.songShow = '正在播放: ' + this.arrList[this.songIndex].songName + " - " + this.arrList[this.songIndex].singer;
+                        //显示正在播放
+                        this.$message.success(this.songShow);
+                        // this.$message.success(this.arrList[this.songIndex].url);
+                    }
+                }
+            },
+            //当前歌单的ID,getList所有歌
+            getListId(row) {
+                this.listOnlyId = row.id;
+                this.listOnlyName = row.listName;
+                this.url = row.listUrl;
+                console.log("url" + this.url)
+                console.log(row.listUrl);
+                this.getAll();
+                //this.getAllBy();
+                // this.songIndex=-1;
+                /* axios.get("/lists/" + row.id).then((res) => {
+                     this.tableData = res.data.data;
+                 })*/
+            },
+            //其他歌单的按钮事件
+            //所有歌
+            /* getAll() {
+                 axios.get("/songs/").then((res) => {
+                     this.tableData = res.data.data;
+                 })
+             },*/
+            getList() {
+                axios.get("/lists").then((res) => {
+                    this.tableData1 = res.data.data;
+                })
+            },
+            //查询所有数据
+            getAllBy() {
+
+                param = "?q"
+                param += "&songName=" + this.searchFrom.songName;
+                param += "&singer=" + this.searchFrom.singer;
+                param += "&listId=" + this.listOnlyId;
+                axios.get("/lists/getBySong" + param).then((res) => {
+                    this.arrList = res.data.data;
+                })
+            },
+            // 条件查询方法
+            onSubmit() {
+                //console.log(this.brand);
+                this.getAll();
+                this.getAllBy();
+            },
+            //重置
+            removeAll() {
+                this.searchFrom = {
+                    singer: "",
+                    songName: ""
+                }
+                this.getAll();
+            },
+            //条件分页
+            getAll() {
+                param = "?q"
+                param += "&songName=" + this.searchFrom.songName;
+                param += "&singer=" + this.searchFrom.singer;
+                param += "&listId=" + this.listOnlyId;
+                axios.get("/lists/" + this.currentPage + "/" + this.pageSize + param).then((res) => {
+                    this.tableData = res.data.data.records;
+                    this.totalCount = res.data.data.total;
+                })
+            },
+            //分页
+            handleSizeChange(val) {
+                console.log(`每页 ${val} 条`);
+                this.pageSize = val;
+                this.getAll();
+                this.getAllBy();
+                console.log(this.arrList);
+            },
+            handleCurrentChange(val) {
+                console.log(`当前页: ${val}`);
+                this.currentPage = val;
+                this.getAll();
+                this.getAllBy();
+            },
+
+
+        }
+
+    })
+</script>
+</body>
+</html>
