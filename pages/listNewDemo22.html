@@ -6,8 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>歌单页面</title>
     <link href="../images/title.png" rel="icon" >
-    <!-- 引入样式 -->
-   <!-- <link rel="stylesheet" href="../styles/page.css"/>-->
+    <!-- 引言 -->
+   <!-- 数据可以都是假的,但喜欢你一定是真的-->
     <style>
         body {
             background: url("../images/veer5.jpg") no-repeat;
@@ -322,13 +322,16 @@
                 //歌单名称
                 listOnlyName: '喜欢你',
                 //侧边栏的显示其他歌单内容
-                tableData1: [{id: 1, listName: "1", listUrl: ""}, {id: 1, listName: "1"}, {
-                    id: 1,
-                    listName: "1"
-                }, {id: 1, listName: "1"}, {id: 1, listName: "1"}, {id: 1, listName: "1"}, {
-                    id: 1,
-                    listName: "1"
-                }, {id: 1, listName: "1"}, {id: 1, listName: "1"}, {id: 1, listName: "1"}, {id: 1, listName: "1"},],
+                tableData1: [{id: 1, listName: "夏天的你", listUrl: "../img/13675fb3-9c77-4237-9541-1e5474e24cdc.jpeg"},
+                 {id: 2, listName: "星光点点",listUrl: "../img/13675fb3-9c77-4237-9541-1e5474e24cdc.jpeg"}, 
+                 {
+                    id: 3,
+                    listName: "细雨离殇",listUrl: "../img/13675fb3-9c77-4237-9541-1e5474e24cdc.jpeg"
+                },
+                 {id: 4, listName: "望断秋水",listUrl: "../img/13675fb3-9c77-4237-9541-1e5474e24cdc.jpeg"},
+                  {id: 5, listName: "心动至上",listUrl: "../img/13675fb3-9c77-4237-9541-1e5474e24cdc.jpeg"} 
+                   
+                ],
                 //歌曲列表
                 //图片地址
                 url: '../images/hi.png',
@@ -384,46 +387,52 @@
                 // 表格数据
                 tableData: [
                     {
-                        songName: "111",
-                        singer: "222",
-                        album: "333",
-                        time: "444",
-                        date: "555"
+                        songName: "喜欢你",
+                        singer: "邓紫棋",
+                        album: "喜欢你",
+                        time: "5:20",
+                        date: "2022-5-20",
+                        url: "../music/喜欢你 - G.E.M. 邓紫棋.mp3",
                     },
                     {
-                        songName: "111",
-                        singer: "222",
-                        album: "333",
-                        time: "444",
-                        date: "555"
+                        songName: "喜欢你",
+                        singer: "邓紫棋",
+                        album: "喜欢你",
+                        time: "5:20",
+                        date: "2022-5-20" ,
+                        url: "../music/喜欢你 - G.E.M. 邓紫棋.mp3",
                     },
                     {
-                        songName: "111",
-                        singer: "222",
-                        album: "333",
-                        time: "444",
-                        date: "555"
+                        songName: "喜欢你",
+                        singer: "邓紫棋",
+                        album: "喜欢你",
+                        time: "5:20",
+                        date: "2022-5-20",
+                        url: "../music/喜欢你 - G.E.M. 邓紫棋.mp3",
                     },
                     {
-                        songName: "111",
-                        singer: "222",
-                        album: "333",
-                        time: "444",
-                        date: "555"
+                        songName: "喜欢你",
+                        singer: "邓紫棋",
+                        album: "喜欢你",
+                        time: "5:20",
+                        date: "2022-5-20",
+                        url: "../music/喜欢你 - G.E.M. 邓紫棋.mp3",
                     },
                     {
-                        songName: "111",
-                        singer: "222",
-                        album: "333",
-                        time: "444",
-                        date: "555"
+                        songName: "喜欢你",
+                        singer: "邓紫棋",
+                        album: "喜欢你",
+                        time: "5:20",
+                        date: "2022-5-20",
+                        url: "../music/喜欢你 - G.E.M. 邓紫棋.mp3",
                     },
                     {
-                        songName: "111",
-                        singer: "222",
-                        album: "333",
-                        time: "444",
-                        date: "555"
+                        songName: "喜欢你",
+                        singer: "邓紫棋",
+                        album: "喜欢你",
+                        time: "5:20",
+                        date: "2022-5-20",
+                        url: "../music/喜欢你 - G.E.M. 邓紫棋.mp3",
                     },
                 ],
                 //搜索表格
@@ -580,52 +589,58 @@
             },
             //播放
             createList(row) {
-
-                param = "?q"
-                param += "&songName=" + this.searchFrom.songName;
-                param += "&singer=" + this.searchFrom.singer;
-                param += "&listId=" + this.listOnlyId;
-                axios.get("/lists/getBySong" + param).then((res) => {
-                    this.arrList = res.data.data;
-                    var audio = document.querySelector('audio')
-                    let arridlist = this.arrList;
-                    let index = (arridlist).findIndex((arridlist) => arridlist.url == row.url);
-                    //  index 返回的就是当前查找元素在数组中的索引
-                    console.log(index);
-                    this.songIndex = index;
-                    //判断歌曲是否已在管理端删除
-                    //row.url='...';
-                    if(row.url==='...noUrl'){
-                        this.$confirm('该歌曲已被下架,是否从此歌单移除', '提示', {
-                            confirmButtonText: '确定',
-                            cancelButtonText: '取消',
-                            type: 'warning'
-                        }).then(() => {
-                            //点了确定
-                            axios.delete("/andLists", {data: row}).then((res) => {
-                                if (res.data.code === 20021) {
-                                    this.$message.success("移除歌曲成功");
-                                    this.getAll();
-                                    this.getAllBy();
-                                } else {
-                                    this.$message.error("移除歌曲失败");
-                                }
-                            })
-                        }).catch(() => {
-                            //点了取消
-                            this.$message({
-                                type: 'info',
-                                message: '已取消移除'
-                            });
-                        });
-                    }else{
-                        audio.src = row.url;
+                var audio = document.querySelector('audio')
+                audio.src = row.url;
                         audio.play();
-                        this.songShow = '正在播放: ' + row.songName + " - " + row.singer;
-                        //显示正在播放
+                         this.songShow = '正在播放: ' + row.songName + " - " + row.singer;
+                         //显示正在播放
                         this.$message.success(this.songShow);
-                    }
-                })
+
+                // param = "?q"
+                // param += "&songName=" + this.searchFrom.songName;
+                // param += "&singer=" + this.searchFrom.singer;
+                // param += "&listId=" + this.listOnlyId;
+                // axios.get("/lists/getBySong" + param).then((res) => {
+                //     this.arrList = res.data.data;
+                //     var audio = document.querySelector('audio')
+                //     let arridlist = this.arrList;
+                //     let index = (arridlist).findIndex((arridlist) => arridlist.url == row.url);
+                //     //  index 返回的就是当前查找元素在数组中的索引
+                //     console.log(index);
+                //     this.songIndex = index;
+                //     //判断歌曲是否已在管理端删除
+                //     //row.url='...';
+                //     if(row.url==='...noUrl'){
+                //         this.$confirm('该歌曲已被下架,是否从此歌单移除', '提示', {
+                //             confirmButtonText: '确定',
+                //             cancelButtonText: '取消',
+                //             type: 'warning'
+                //         }).then(() => {
+                //             //点了确定
+                //             axios.delete("/andLists", {data: row}).then((res) => {
+                //                 if (res.data.code === 20021) {
+                //                     this.$message.success("移除歌曲成功");
+                //                     this.getAll();
+                //                     this.getAllBy();
+                //                 } else {
+                //                     this.$message.error("移除歌曲失败");
+                //                 }
+                //             })
+                //         }).catch(() => {
+                //             //点了取消
+                //             this.$message({
+                //                 type: 'info',
+                //                 message: '已取消移除'
+                //             });
+                //         });
+                //     }else{
+                //         audio.src = row.url;
+                //         audio.play();
+                //         this.songShow = '正在播放: ' + row.songName + " - " + row.singer;
+                //         //显示正在播放
+                //         this.$message.success(this.songShow);
+                //     }
+                // })
             },
             ended() {
                 var audio = document.querySelector('audio');
